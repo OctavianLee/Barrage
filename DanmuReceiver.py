@@ -7,9 +7,9 @@ import requests
 from datetime import datetime
 
 
-class DanmuProcessor(object):
+class DanmuReceiver(object):
 
-    """关于弹幕处理的类"""
+    """关于接收弹幕的类"""
 
     def __init__(self, room_id):
         self.__room_id = room_id
@@ -17,10 +17,10 @@ class DanmuProcessor(object):
         self._danmus = self.__get_all_danmus()
 
         self.admin_danmus = self.get_all_administrators_danmus()
-        print self.admin_danmus[0]
         self.user_danmus = self.get_all_users_danmus()
 
     def run(self):
+        """运行弹幕助手程序。"""
         event = gevent.spawn(self.update_danmus, 10)
         gevent.joinall([event])
 
