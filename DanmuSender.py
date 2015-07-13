@@ -104,9 +104,9 @@ class DanmuSender(object):
         req = urllib2.Request(vdcode_url)
         resp = self.opener.open(req)
         html = resp.read()
-        f = open('./vdcode.png', 'w')
-        f.write(html)
-        f.close()
+        with open('./vdcode.png', 'w') as f:
+            f.write(html)
+            f.close()
 
 if __name__ == '__main__':
     bili = DanmuSender()
