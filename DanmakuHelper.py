@@ -22,28 +22,30 @@ class DanmakuHelper(object):
 
         print (
             """欢迎使用直播弹幕小助手，选择当前服务：\n
+            本助手由Octavian开发，邮箱：Octavianlee1@gmail.com\n
         \t 1: 选择 1 接收直播间弹幕信息；  \n
         \t 2: 选择 2 在直播间发送弹幕信息（需要登录）。\n
         """)
         option = None
-        while True:
-            option = raw_input("请输入你的选择(Exit 退出):")
-            if option == "1" or option == "2":
-                break
         room_id = None
         while True:
-            try:
-                room_id_str = raw_input('您所在直播间(Exit 退出助手)：')
-                if room_id_str == "Exit":
-                    break
-                room_id = int(room_id_str)
+            option = raw_input("请输入你的选择(Exit 退出):")
+            if option in ["1", "2", "Exit"]:
                 break
-            except:
-                print "您输入的直播间有误，请重新输入！"
-        if option == "1":
-            self.receiver_service(room_id)
-        elif option == "2":
-            self.sender_service(room_id)
+        if option != "Exit":
+            while True:
+                try:
+                    room_id_str = raw_input('您所在直播间(Exit 退出助手)：')
+                    if room_id_str == "Exit":
+                        break
+                    room_id = int(room_id_str)
+                    if option == "1":
+                        self.receiver_service(room_id)
+                    elif option == "2":
+                        self.sender_service(room_id)
+                    break
+                except:
+                    print "您输入的直播间有误，请重新输入！"
         print "感谢使用本助手！"
 
     def sender_service(self, room_id):
@@ -183,9 +185,6 @@ class DanmakuHelper(object):
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect(("livecmt.bilibili.com", 88))
-        except:
-            print "服务器连接失败。"
-        while True:
             data = '0101000c0000%04x00000000' % room_id
             send_data = unhexlify(data)
             self.socket.sendall(send_data)
@@ -201,6 +200,8 @@ class DanmakuHelper(object):
                     print self.format_danmaku(json.loads(data[4:]))
                 except:
                     pass
+        except Exception:
+            print "服务器连接失败。"
 
     def format_danmaku(self, danmaku):
         """格式化输出一条弹幕信息。
