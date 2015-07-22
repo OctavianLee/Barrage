@@ -11,6 +11,7 @@ from danmaku.configs.global_settings import (
     RECIEVE_INIT_DATA
 )
 from danmaku.configs.personal_settings import TIME_FORMAT
+from danmaku.helpers import convert_hexascii_to_int
 
 
 class RecieverService(object):
@@ -29,13 +30,15 @@ class RecieverService(object):
         :params: room_id: 直播间号。
         """
         is_first = True
+        data = RECIEVE_INIT_DATA % room_id
+        send_data = unhexlify(data)
         while True:
-            self.get_danmaku(room_id, is_first)
+            self.get_danmaku(send_data, is_first)
             is_first = False
 
-    def get_danmaku(self, room_id, is_first):
+    def get_danmaku(self, send_data, is_first):
         """ 请求获得弹幕信息。
-        :params: room_id: 直播间号。
+        :params: send_data: 请求服务器认真的数据。
         :params: is_first: 判断是否是第一次连接弹幕服务器。
         """
         if is_first:
@@ -43,22 +46,24 @@ class RecieverService(object):
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((RECIEVE_SERVER_ADDRESS, RECIEVE_SERVER_PORT))
-            data = RECIEVE_INIT_DATA % room_id
-            send_data = unhexlify(data)
             self.socket.sendall(send_data)
             while True:
                 if is_first:
                     print "开始接收弹幕。(Ctrl + C 退出)"
                     is_first = False
-                data = self.socket.recv(1024)
-                if data == "":
+                data = self.socket.recv(2)
+                if not data:
                     self.socket.close()
                     break
-                try:
-                    print self.format_danmaku(json.loads(data[4:]))
-                except Exception as e:
-                    print e
-                    pass
+                type = convert_hexascii_to_int(data)
+                if type == 1:
+                    count = convert_hexascii_to_int(self.socket.recv(4))
+                    print "当前直播人数为：{0}".format(count)
+                elif type == 4:
+                    length = convert_hexascii_to_int(self.socket.recv(2)) - 4
+                    if length > 0:
+                        msg = self.socket.recv(length)
+                        print self.format_danmaku(json.loads(msg))
         except Exception:
             print "服务器连接失败。"
 
