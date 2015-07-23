@@ -53,6 +53,9 @@ class DanmakuHime(object):
         }
         try:
             service = danmaku_services[option](room_id)
-            return service
+            if option == "1":
+                service.cmd_run()
+            else:
+                return service
         except KeyError:
             print "选项发生错误!"
