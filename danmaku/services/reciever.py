@@ -16,7 +16,7 @@ from danmaku.configs.global_settings import (
 )
 from danmaku.configs.personal_settings import TIME_FORMAT
 from danmaku.helpers import convert_hexascii_to_int
-from danmaku.models.danmaku import DanmakuModel, danmaku_queue
+from danmaku.models.danmaku import DanmakuModel, DanmakuQueue
 
 
 class RecieverService(object):
@@ -30,16 +30,21 @@ class RecieverService(object):
         """
         data = RECIEVE_INIT_DATA % room_id
         self.send_data = unhexlify(data)
+        self.danmaku_queue = DanmakuQueue(room_id)
 
     def cmd_run(self):
         """启动服务(只针对命令行使用)"""
         thread.start_new_thread(self.subscribe_danmaku, ())
         self.consume_danmaku()
 
+    def recieve_danmaku(self):    
+        """接收一个弹幕"""
+        return self.danmaku_queue.dequeue()
+
     def consume_danmaku(self):
         """获取接收到的弹幕。"""
         while True:
-            danmaku = danmaku_queue.dequeue()
+            danmaku = self.recieve_danmaku()
             if danmaku:
                 print danmaku
 
@@ -70,7 +75,8 @@ class RecieverService(object):
             type = convert_hexascii_to_int(data)
             if type == 1:
                 count = convert_hexascii_to_int(self.socket.recv(4))
-                print "当前直播人数为：{0}".format(count)
+                if self.danmaku_queue.set_count(count):
+                    print "当前直播人数为：{0}".format(count)
             elif type == 4:
                 length = convert_hexascii_to_int(self.socket.recv(2)) - 4
                 if length > 0:
@@ -88,4 +94,4 @@ class RecieverService(object):
             content=msg['info'][1],
             recieved_time=recieved_time
         )
-        danmaku_queue.enqueue(danmaku)
+        self.danmaku_queue.enqueue(danmaku)
