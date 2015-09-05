@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 
+"""
+The gobal data of danamku hime.
+"""
+
 # RECIEVER PART
 
 RECIEVE_SERVER_ADDRESS = "livecmt.bilibili.com"
 RECIEVE_SERVER_PORT = 88
 RECIEVE_INIT_DATA = '0101000c0000%04x00000000'
+
+HEARTBEAT_STR = '01020004'
+HEARTBEAT_KEEP_TIME = 10
 
 
 # LOGIN PART
