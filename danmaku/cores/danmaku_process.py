@@ -2,10 +2,7 @@
 """
     Process the danmaku data.
 """
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
-import ujson as json
+import ujson
 from datetime import datetime
 
 from danmaku.models.danmaku import DanmakuModel
@@ -15,6 +12,12 @@ from danmaku.helpers import recieve_sock_data
 
 
 def process_recieve_data(sock, danmaku_queue, data):
+    """Process recieving data.
+
+    :param sock: the socket object.
+    :param danmaku_queue: the queue to recieve danmaku.
+    :param data: the recieved data.
+    """
     data_type = convert_hexascii_to_int(data)
     if data_type == 1:
         hexascii_data = recieve_sock_data(sock, 4)
@@ -29,33 +32,46 @@ def process_recieve_data(sock, danmaku_queue, data):
             return False
         length = convert_hexascii_to_int(hexascii_data) - 4
         if length > 0:
-            msg = recieve_sock_data(sock, length)
-            if not msg:
+            data = recieve_sock_data(sock, length)
+            if not data:
                 return False
-            danmaku = generate_danmaku(json.loads(msg))
+            msg = ujson.loads(data)
+            danmaku = generate_danmaku(msg)
             if danmaku:
                 put_danmaku(danmaku_queue, danmaku)
                 return True
 
-def generate_danmaku(msg):
-    """生成弹幕。
 
-    :param msg: 从服务器获取到的消息。
+def generate_danmaku(msg):
+    """Generate a danmaku。
+
+    :param msg: the message from Bilibili Danmaku Server.
     """
     recieved_time = datetime.now().strftime(TIME_FORMAT)
     try:
         danmaku = DanmakuModel(
-            publisher=msg['info'][2][1],
-            content=msg['info'][1],
+            publisher=msg['info'][2][1].encode('utf-8'),
+            content=msg['info'][1].encode('utf-8'),
             recieved_time=recieved_time
         )
         return danmaku
-    except Exception as e:
+    except KeyError:
         # b站现在新推出了msg类型，防止问题先pass，之后来处理这些新弹幕
         return None
 
+
 def put_danmaku(danmaku_queue, danmaku):
+    """Put a danmaku into a danamku queue.
+
+    :param danmaku_queue: the queue to recieve danmaku.
+    :param danmaku: a danmaku
+    """
     danmaku_queue.enqueue(danmaku)
 
+
 def get_danmaku(danmaku_queue):
+    """Get a danmaku from a danamku queue.
+
+    :param danmaku_queue: the queue to recieve danmaku.
+    """
     return danmaku_queue.dequeue()

@@ -12,7 +12,7 @@ class DanmakuModel(object):
         self.recieved_time = recieved_time
 
     def __str__(self):
-        string = u"[{0}] 用户 {1} 说：{2}".format(
+        string = "[{0}] 用户 {1} 说：{2}".format(
             self.recieved_time, self.publisher, self.content)
         return string
     
