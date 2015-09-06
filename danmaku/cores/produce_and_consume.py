@@ -20,7 +20,6 @@ from danmaku.cores.danmaku_process import (
     process_recieve_data,
     get_danmaku
 )
-from danmaku.helpers import recieve_sock_data
 
 
 @greenlet
@@ -38,7 +37,7 @@ def produce_danmaku(sock, danmaku_queue, is_health=True):
             start = time.time()
             heartbeat.switch(sock, danmaku_queue, is_health)
         try:
-            data = recieve_sock_data(sock, 2)
+            data = sock.recv(2)
             if not data:
                 break
         except socket.timeout:

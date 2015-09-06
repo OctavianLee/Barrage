@@ -6,7 +6,7 @@
 
 感谢b站高人气直播间提供的大量弹幕！
 
-版本 ***0.1.6***
+版本 ***0.1.7***
 
 ## 功能介绍
 
@@ -48,7 +48,8 @@ Version Changes:
 + 2015-07-22 11H  修改bug，结构性重构代码。 By Octavian
 + 2015-07-23 04H  更新获取数据结构，能够获取直播间人数。 By Octavian
 + 2015-07-24 02H  添加数据模型，拆分弹幕接收功能接口功能。 By Octavian
-+ 2015-09-04 02H  解决接受弹幕服务各类连接问题（包括保持连接，超时响应，异常中止服务等）及体验问题（包括弹幕异常，更多的文本反馈等）（暂时未优化本次版本代码）。 By Octavian
++ 2015-09-04 02H  Fix many connection problems and Improve the feedback By Octavian
 + 2015-09-05 22H  Finish the new model of producer and consumer and Refator the code about recieving danmaku. By Octavian
 + 2015-09-06 23H  Fix the bug when caught timeout and Write some basic documents in files. By Octavian
 + 2015-09-06 24H  Fix the problem about decoding Chinese. By Octavian
++ 2015-09-07 05H  Add the new danmaku and Fix the timeout bug. By Octavian

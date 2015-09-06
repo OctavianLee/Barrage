@@ -48,11 +48,47 @@ def generate_danmaku(msg):
     :param msg: the message from Bilibili Danmaku Server.
     """
     recieved_time = datetime.now().strftime(TIME_FORMAT)
+    cmd = msg.get('cmd')
+    publisher = None
+    content = None
+    is_vip = False
+    is_admin = False
+    danmaku_type = None
+    if cmd == "DANMU_MSG":
+        danmaku_type = DanmakuModel.DANMU_MSG
+        publisher = msg['info'][2][1].encode('utf-8')
+        content = msg['info'][1].encode('utf-8')
+        is_vip = msg['info'][2][2] == 1
+        is_admin = msg['info'][2][3] == 1
+    elif cmd == "SEND_GIFT":
+        danmaku_type = DanmakuModel.SEND_GIFT
+        publisher = msg['data']['uname'].encode('utf-8')
+        content = ''.join(
+            [str(msg['data']['num']), ' X ',
+             msg['data']['giftName'].encode('utf-8'),
+             ' 花费', str(msg['data']['rcost'])])
+    elif cmd == "WELCOME":
+        danmaku_type = DanmakuModel.WELCOME
+        publisher = msg['data']['uname'].encode('utf-8')
+        content = None
+        is_vip = True
+        is_admin = msg['info'][2][3] == 1
+    elif cmd == "GIFT_TOP":
+        danmaku_type = DanmakuModel.GIFT_TOP
+        tops = msg["data"]
+        contents = ["{}: {} {}".format(top['uid'], top['uname'], top['coin'])
+                for top in tops]
+        content = '\n'.join(contents)
+        publisher = "排行榜"
+
     try:
         danmaku = DanmakuModel(
-            publisher=msg['info'][2][1].encode('utf-8'),
-            content=msg['info'][1].encode('utf-8'),
-            recieved_time=recieved_time
+            publisher=publisher,
+            content=content,
+            recieved_time=recieved_time,
+            danmaku_type=danmaku_type,
+            is_admin=is_admin,
+            is_vip=is_vip
         )
         return danmaku
     except KeyError:

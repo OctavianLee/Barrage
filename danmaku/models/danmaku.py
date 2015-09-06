@@ -3,19 +3,52 @@
 
 class DanmakuModel(object):
 
-    """弹幕的数据模型。
+    """The model of a Danmaku
     """
+    DANMU_MSG = 1
+    SEND_GIFT = 2
+    WELCOME = 3
+    GIFT_TOP = 4
 
-    def __init__(self, publisher, content, recieved_time):
+    def __init__(self, publisher, content, recieved_time, danmaku_type,
+                 is_admin=False, is_vip=False):
         self.publisher = publisher
         self.content = content
         self.recieved_time = recieved_time
+        self.is_admin = is_admin
+        self.is_vip = is_vip
+        self.danmaku_type = danmaku_type
 
     def __str__(self):
-        string = "[{0}] 用户 {1} 说：{2}".format(
-            self.recieved_time, self.publisher, self.content)
+        title = []
+        if self.is_vip:
+           title.append('尊贵的')
+        if self.is_admin:
+           title.append('管理员')
+        else:
+           title.append('用户')
+
+        string = ''
+        if self.danmaku_type == DanmakuModel.DANMU_MSG:
+            string = "[{}] {} {} 说：{}".format(
+                self.recieved_time, ''.join(title),
+                self.publisher, self.content)
+        elif self.danmaku_type == DanmakuModel.SEND_GIFT:
+            string = "[{}] {} {} 送出了 {}".format(
+                self.recieved_time, ''.join(title),
+                self.publisher, self.content)
+        elif self.danmaku_type == DanmakuModel.WELCOME:
+            string = "[{}] 欢迎 {} {}".format(
+                self.recieved_time, ''.join(title),
+                self.publisher)
+        elif self.danmaku_type == DanmakuModel.GIFT_TOP:
+            string = "[{}] {}:\n {}".format(
+                self.recieved_time,
+                self.publisher,
+                self.content)
+
         return string
-    
+
     def to_string(self):
         return self.__str__()
 
