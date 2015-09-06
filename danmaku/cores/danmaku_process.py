@@ -10,20 +10,28 @@ from datetime import datetime
 
 from danmaku.models.danmaku import DanmakuModel
 from danmaku.helpers import convert_hexascii_to_int
-
 from danmaku.configs.personal_settings import TIME_FORMAT
+from danmaku.helpers import recieve_sock_data
 
 
-def process_recieve_data(socket, danmaku_queue, data):
+def process_recieve_data(sock, danmaku_queue, data):
     data_type = convert_hexascii_to_int(data)
     if data_type == 1:
-        count = convert_hexascii_to_int(socket.recv(4))
+        hexascii_data = recieve_sock_data(sock, 4)
+        if not hexascii_data:
+            return False
+        count = convert_hexascii_to_int(hexascii_data)
         if danmaku_queue.set_count(count):
             print "当前直播人数为：{0}".format(count)
     elif data_type == 4:
-        length = convert_hexascii_to_int(socket.recv(2)) - 4
+        hexascii_data = recieve_sock_data(sock, 2)
+        if not hexascii_data:
+            return False
+        length = convert_hexascii_to_int(hexascii_data) - 4
         if length > 0:
-            msg = socket.recv(length)
+            msg = recieve_sock_data(sock, length)
+            if not msg:
+                return False
             danmaku = generate_danmaku(json.loads(msg))
             if danmaku:
                 put_danmaku(danmaku_queue, danmaku)

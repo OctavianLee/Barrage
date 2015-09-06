@@ -19,13 +19,16 @@ from danmaku.cores.produce_and_consume import (
 
 @contextmanager
 def generate_socket(room_id):
+    """Generate the socket to communicate with Bilibili Danmaku Server.
+
+    :param room_id: the id of live room.
+    """
     is_first = True
     print "请求服务器连接"
     retry_time = 0
     socket.setdefaulttimeout(TIME_OUT)
     data = RECIEVE_INIT_DATA % room_id
     send_data = unhexlify(data)
-    is_terminate = False
     while True:
         sock = socket.socket(socket.AF_INET,
                              socket.SOCK_STREAM)
@@ -37,7 +40,6 @@ def generate_socket(room_id):
             sock.sendall(send_data)
         except socket.error:
             if retry_time == MAX_RETRY:
-                is_terminate = True
                 if not is_first:
                     terminate()
                 raise RuntimeError("重试请求过多，服务中止！")
@@ -57,6 +59,10 @@ def generate_socket(room_id):
 
 
 def run_recieve(room_id):
+    """Run the program of recieving danmakus.
+
+    :param room_id: the id of live room.
+    """
     danmaku_queue = DanmakuQueue(room_id)
     try:
         with generate_socket(room_id) as sock:
