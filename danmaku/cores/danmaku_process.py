@@ -72,7 +72,7 @@ def generate_danmaku(msg):
         publisher = msg['data']['uname'].encode('utf-8')
         content = None
         is_vip = True
-        is_admin = msg['info'][2][3] == 1
+        is_admin = msg['data']['isadmin'] == 1
     elif cmd == "GIFT_TOP":
         danmaku_type = DanmakuModel.GIFT_TOP
         tops = msg["data"]
