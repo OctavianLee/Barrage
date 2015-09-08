@@ -2,11 +2,11 @@
 
 一个开源的b站直播间弹幕姬，主播可以获取直播间内弹幕信息且可以进行发送弹幕功能。
 
-参考了弹幕姬的功能，感谢copyliu!
+参考了弹幕姬的功能，感谢copyliu [bililive_dm](https://github.com/copyliu/bililive_dm)!
 
 感谢b站高人气直播间提供的大量弹幕！
 
-版本 ***0.1.8***
+版本 ***0.1.8a***
 
 ## 功能介绍
 
@@ -53,4 +53,5 @@ Version Changes:
 + 2015-09-06 23H  Fix the bug when caught timeout and Write some basic documents in files. By Octavian
 + 2015-09-06 24H  Fix the problem about decoding Chinese. By Octavian
 + 2015-09-07 05H  Add the new danmaku and Fix the timeout bug. By Octavian
-+ 2015-09-07 17H  Fix a bug when processing WELCOME. ByOctavian
++ 2015-09-07 17H  Fix a bug when processing WELCOME. By Octavian
++ 2015-09-08 20H  Add the reference repo made by copyliu. By Octavian
