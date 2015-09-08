@@ -5,6 +5,7 @@
 import ujson
 from datetime import datetime
 
+from danmaku.models import DANMU_MSG, SEND_GIFT, WELCOME, GIFT_TOP
 from danmaku.models.danmaku import DanmakuModel
 from danmaku.helpers import convert_hexascii_to_int
 from danmaku.configs.personal_settings import TIME_FORMAT
@@ -24,8 +25,8 @@ def process_recieve_data(sock, danmaku_queue, data):
         if not hexascii_data:
             return False
         count = convert_hexascii_to_int(hexascii_data)
-        if danmaku_queue.set_count(count):
-            print "当前直播人数为：{0}".format(count)
+        danmaku_queue.count = count
+        print "当前直播人数为：{}".format(danmaku_queue.count)
     elif data_type == 4:
         hexascii_data = recieve_sock_data(sock, 2)
         if not hexascii_data:
@@ -55,26 +56,26 @@ def generate_danmaku(msg):
     is_admin = False
     danmaku_type = None
     if cmd == "DANMU_MSG":
-        danmaku_type = DanmakuModel.DANMU_MSG
+        danmaku_type = DANMU_MSG
         publisher = msg['info'][2][1].encode('utf-8')
         content = msg['info'][1].encode('utf-8')
         is_vip = msg['info'][2][2] == 1
         is_admin = msg['info'][2][3] == 1
     elif cmd == "SEND_GIFT":
-        danmaku_type = DanmakuModel.SEND_GIFT
+        danmaku_type = SEND_GIFT
         publisher = msg['data']['uname'].encode('utf-8')
         content = ''.join(
             [str(msg['data']['num']), ' X ',
              msg['data']['giftName'].encode('utf-8'),
              ' 花费', str(msg['data']['rcost'])])
     elif cmd == "WELCOME":
-        danmaku_type = DanmakuModel.WELCOME
+        danmaku_type = WELCOME
         publisher = msg['data']['uname'].encode('utf-8')
         content = None
         is_vip = True
         is_admin = msg['data']['isadmin'] == 1
     elif cmd == "GIFT_TOP":
-        danmaku_type = DanmakuModel.GIFT_TOP
+        danmaku_type = GIFT_TOP
         tops = msg["data"]
         contents = ["{}: {} {}".format(top['uid'], top['uname'], top['coin'])
                 for top in tops]

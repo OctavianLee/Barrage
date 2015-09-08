@@ -1,14 +1,29 @@
 # -*- coding: utf-8 -*-
+"""
+    The models of the danmaku hime.
+"""
+
+DANMU_MSG = 1
+SEND_GIFT = 2
+WELCOME = 3
+GIFT_TOP = 4
+
+STRING_DICT = {
+    DANMU_MSG: "[{}] {} {} 说：{}",
+    SEND_GIFT: "[{}] {} {} 送出了 {}",
+    WELCOME: "[{}] 欢迎 {} {}",
+    GIFT_TOP: "[{}] {}:\n {}",
+}
 
 
 class DanmakuModel(object):
 
     """The model of a Danmaku
     """
-    DANMU_MSG = 1
-    SEND_GIFT = 2
-    WELCOME = 3
-    GIFT_TOP = 4
+
+    VIP = '尊贵的'
+    ADMIN = '管理员'
+    USER = '用户'
 
     def __init__(self, publisher, content, recieved_time, danmaku_type,
                  is_admin=False, is_vip=False):
@@ -19,77 +34,85 @@ class DanmakuModel(object):
         self.is_vip = is_vip
         self.danmaku_type = danmaku_type
 
-    def __str__(self):
+    @property
+    def title(self):
+        """Get the title of danmaku user."""
         title = []
         if self.is_vip:
-           title.append('尊贵的')
+            title.append(self.VIP)
         if self.is_admin:
-           title.append('管理员')
+            title.append(self.ADMIN)
         else:
-           title.append('用户')
+            title.append(self.USER)
+        return ''.join(title)
 
-        string = ''
-        if self.danmaku_type == DanmakuModel.DANMU_MSG:
-            string = "[{}] {} {} 说：{}".format(
-                self.recieved_time, ''.join(title),
+    def __str__(self):
+        if self.danmaku_type == DANMU_MSG:
+            return STRING_DICT.get(self.danmaku_type).format(
+                self.recieved_time, self.title,
                 self.publisher, self.content)
-        elif self.danmaku_type == DanmakuModel.SEND_GIFT:
-            string = "[{}] {} {} 送出了 {}".format(
-                self.recieved_time, ''.join(title),
+        elif self.danmaku_type == SEND_GIFT:
+            return STRING_DICT.get(self.danmaku_type).format(
+                self.recieved_time, self.title,
                 self.publisher, self.content)
-        elif self.danmaku_type == DanmakuModel.WELCOME:
-            string = "[{}] 欢迎 {} {}".format(
-                self.recieved_time, ''.join(title),
+        elif self.danmaku_type == WELCOME:
+            return STRING_DICT.get(self.danmaku_type).format(
+                self.recieved_time, self.title,
                 self.publisher)
-        elif self.danmaku_type == DanmakuModel.GIFT_TOP:
-            string = "[{}] {}:\n {}".format(
+        elif self.danmaku_type == GIFT_TOP:
+            return STRING_DICT.get(self.danmaku_type).format(
                 self.recieved_time,
                 self.publisher,
                 self.content)
-
-        return string
+        return None
 
     def to_string(self):
+        """Get the content of danmaku."""
         return self.__str__()
 
 
 class DanmakuQueue(object):
 
-    """弹幕队列。
-    当获取到弹幕信息，加入队列中，此时接收器可以通过取出内容获取弹幕信息。
+    """The Danmaku Queue
 
+    Enqueue the danmaku when recieving.
     """
 
     def __init__(self, room_id):
-        self.__queue = []
+        self._queue = []
         self.room_id = room_id
         self.__count = 0
 
-    def set_count(self, count):
-        """设置当前直播间人数。
-        :params: count: 当前直播间人数。
+    @property
+    def count(self):
+        """Get the current counts."""
+        return self.__count
+
+    @count.setter
+    def count(self, count):
+        """Set the number of current people in Live room.
+
+        :param count: the number of current people.
         """
         if self.__count != count:
             self.__count = count
-            return True
-        return False
-
-    def get_count(self):
-        """获取当前直播间人数。"""
-        return self.__count
 
     def enqueue(self, danmaku):
-        """将一个弹幕数据放入队列中。
-        :params: danmaku_model: 弹幕数据类型。
+        """Enqueue a danmaku.
+
+        :param danmaku: a danamku.
+        :return: the bool value.
         """
         if isinstance(danmaku, DanmakuModel):
-            self.__queue.append(danmaku)
+            self._queue.append(danmaku)
             return True
         return False
 
     def dequeue(self):
-        """弹出一个弹幕数据类型。
+        """Dequeue a danmaku.
+
+        :return: the danmaku when success.
         """
-        if self.__queue:
-            return self.__queue.pop(0)
+        if self._queue:
+            return self._queue.pop(0)
         return None
