@@ -25,8 +25,9 @@ def process_recieve_data(sock, danmaku_queue, data):
         if not hexascii_data:
             return False
         count = convert_hexascii_to_int(hexascii_data)
-        danmaku_queue.count = count
-        print "当前直播人数为：{}".format(danmaku_queue.count)
+        if danmaku_queue.count != count:
+            danmaku_queue.count = count
+            print "当前直播人数为：{}".format(count)
     elif data_type == 4:
         hexascii_data = recieve_sock_data(sock, 2)
         if not hexascii_data:
@@ -103,7 +104,6 @@ def generate_danmaku(msg):
 
     :param msg: the message from Bilibili Danmaku Server.
     """
-    print msg
     recieved_time = datetime.now().strftime(TIME_FORMAT)
     cmd = msg.get('cmd')
     publisher = None
@@ -117,7 +117,7 @@ def generate_danmaku(msg):
             publisher = msg['info'][2][1].encode('utf-8')
             content = msg['info'][1].encode('utf-8')
             is_vip = msg['info'][2][2] == 1
-            is_admin = msg['info'][2][3] == 1
+            is_admin = int(msg['info'][2][3].encode('utf-8')) == 1
         elif cmd == "SEND_GIFT":
             danmaku_type = SEND_GIFT
             publisher = msg['data']['uname'].encode('utf-8')
