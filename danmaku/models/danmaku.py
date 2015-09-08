@@ -6,13 +6,13 @@
 DANMU_MSG = 1
 SEND_GIFT = 2
 WELCOME = 3
-GIFT_TOP = 4
+SEND_TOP = 4
 
 STRING_DICT = {
     DANMU_MSG: "[{}] {} {} 说：{}",
     SEND_GIFT: "[{}] {} {} 送出了 {}",
     WELCOME: "[{}] 欢迎 {} {}",
-    GIFT_TOP: "[{}] {}:\n {}",
+    SEND_TOP: "[{}] {}:\n {}",
 }
 
 
@@ -59,7 +59,7 @@ class DanmakuModel(object):
             return STRING_DICT.get(self.danmaku_type).format(
                 self.recieved_time, self.title,
                 self.publisher)
-        elif self.danmaku_type == GIFT_TOP:
+        elif self.danmaku_type == SEND_TOP:
             return STRING_DICT.get(self.danmaku_type).format(
                 self.recieved_time,
                 self.publisher,

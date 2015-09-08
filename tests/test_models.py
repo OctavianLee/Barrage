@@ -4,7 +4,7 @@ from nose.tools import eq_
 from mock import Mock
 
 from constants import STRING, NUMBER, DATE
-from danmaku.models import DANMU_MSG, SEND_GIFT, WELCOME, GIFT_TOP
+from danmaku.models import DANMU_MSG, SEND_GIFT, WELCOME, SEND_TOP
 from danmaku.models import STRING_DICT, DanmakuModel, DanmakuQueue
 from danmaku.configs.personal_settings import TIME_FORMAT
 
@@ -45,11 +45,12 @@ class TestDanmakuModel(TestCase):
             self.recieved_time, self.danmaku.title,
             self.publisher)
         eq_(self.danmaku.to_string(), string)
-        self.danmaku.danmaku_type = GIFT_TOP
-        string = STRING_DICT.get(WELCOME).format(
+        self.danmaku.danmaku_type = SEND_TOP
+        string = STRING_DICT.get(SEND_TOP).format(
             self.recieved_time,
             self.publisher,
             self.content)
+        eq_(self.danmaku.to_string(), string)
 
 
 class TestDanmakuQueue(TestCase):

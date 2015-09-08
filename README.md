@@ -6,7 +6,7 @@
 
 感谢b站高人气直播间提供的大量弹幕！
 
-版本 ***0.1.8a***
+版本 ***0.1.9***
 
 ## 功能介绍
 
@@ -54,4 +54,5 @@ Version Changes:
 + 2015-09-06 24H  Fix the problem about decoding Chinese. By Octavian
 + 2015-09-07 05H  Add the new danmaku and Fix the timeout bug. By Octavian
 + 2015-09-07 17H  Fix a bug when processing WELCOME. By Octavian
-+ 2015-09-08 20H  Add the reference repo made by copyliu. By Octavian
++ 2015-09-08 20H  Add the reference repo made by copyliu. by octavian
++ 2015-09-09 00H  Fix the bug in danmaku type. by octavian

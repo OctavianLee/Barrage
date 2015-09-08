@@ -5,7 +5,7 @@
 import ujson
 from datetime import datetime
 
-from danmaku.models import DANMU_MSG, SEND_GIFT, WELCOME, GIFT_TOP
+from danmaku.models import DANMU_MSG, SEND_GIFT, WELCOME, SEND_TOP
 from danmaku.models.danmaku import DanmakuModel
 from danmaku.helpers import convert_hexascii_to_int
 from danmaku.configs.personal_settings import TIME_FORMAT
@@ -44,10 +44,66 @@ def process_recieve_data(sock, danmaku_queue, data):
 
 
 def generate_danmaku(msg):
-    """Generate a danmaku。
+    u"""Generate a danmaku.
+
+    the format of msg (Coz the format is closed source, it could be changed):
+
+    # 1 DANMU_MSG send a danmaku
+    {
+        u'info': [
+            [ 0, 1, 25, 16777215, 1441727762, 1585812335, 0, u'c8de2b91', 0],
+            u'xxxxx',
+            [ 11111, u'xxxx', 0, u'0']
+        ],
+        u'cmd': u'DANMU_MSG',
+        u'roomid': 1111
+    }
+    # 2 SEND_GIFT send a gift
+    {
+        u'roomid': 11111,
+        u'cmd': u'SEND_GIFT',
+        u'data': {
+            u'top_list': [
+                {u'uname': u'xxx', u'coin': 22222, u'uid': 222222},
+                ...
+            ],
+            u'uid': 1111,
+            u'timestamp': 1441727778,
+            u'price': 100,
+            u'giftId': 1,
+            u'uname': u'xxxxx',
+            u'num': 1,
+            u'rcost': 99999,
+            u'super': 0,
+            u'action': u'\u5582\u98df',
+            u'giftName': u'\u8fa3\u6761'
+        }
+    }
+    # 3 WELCOME welcome a vip.
+    {
+        u'roomid': 111,
+        u'cmd': u'WELCOME',
+        u'data': {
+            u'uname': u'xxxxxr',
+            u'isadmin': 0,
+            u'uid': 1111
+        }
+    }
+    # 4 SEND_TOP Top list.
+    {
+        u'roomid': u'11111',
+        u'cmd': u'SEND_TOP',
+        u'data': {
+            u'top_list': [
+                {u'uname': u'xxxx', u'coin': 693300, u'uid': 11111},
+                ...
+            ]
+        }
+    }
 
     :param msg: the message from Bilibili Danmaku Server.
     """
+    print msg
     recieved_time = datetime.now().strftime(TIME_FORMAT)
     cmd = msg.get('cmd')
     publisher = None
@@ -55,34 +111,33 @@ def generate_danmaku(msg):
     is_vip = False
     is_admin = False
     danmaku_type = None
-    if cmd == "DANMU_MSG":
-        danmaku_type = DANMU_MSG
-        publisher = msg['info'][2][1].encode('utf-8')
-        content = msg['info'][1].encode('utf-8')
-        is_vip = msg['info'][2][2] == 1
-        is_admin = msg['info'][2][3] == 1
-    elif cmd == "SEND_GIFT":
-        danmaku_type = SEND_GIFT
-        publisher = msg['data']['uname'].encode('utf-8')
-        content = ''.join(
-            [str(msg['data']['num']), ' X ',
-             msg['data']['giftName'].encode('utf-8'),
-             ' 花费', str(msg['data']['rcost'])])
-    elif cmd == "WELCOME":
-        danmaku_type = WELCOME
-        publisher = msg['data']['uname'].encode('utf-8')
-        content = None
-        is_vip = True
-        is_admin = msg['data']['isadmin'] == 1
-    elif cmd == "GIFT_TOP":
-        danmaku_type = GIFT_TOP
-        tops = msg["data"]
-        contents = ["{}: {} {}".format(top['uid'], top['uname'], top['coin'])
-                for top in tops]
-        content = '\n'.join(contents)
-        publisher = "排行榜"
-
     try:
+        if cmd == "DANMU_MSG":
+            danmaku_type = DANMU_MSG
+            publisher = msg['info'][2][1].encode('utf-8')
+            content = msg['info'][1].encode('utf-8')
+            is_vip = msg['info'][2][2] == 1
+            is_admin = msg['info'][2][3] == 1
+        elif cmd == "SEND_GIFT":
+            danmaku_type = SEND_GIFT
+            publisher = msg['data']['uname'].encode('utf-8')
+            content = ''.join(
+                [str(msg['data']['num']), ' X ',
+                 msg['data']['giftName'].encode('utf-8'),
+                 ' 目前共花销：', str(msg['data']['rcost'])])
+        elif cmd == "WELCOME":
+            danmaku_type = WELCOME
+            publisher = msg['data']['uname'].encode('utf-8')
+            is_vip = True
+            is_admin = msg['data']['isadmin'] == 1
+        elif cmd == "SEND_TOP":
+            danmaku_type = SEND_TOP
+            tops = msg["data"]['top_list']
+            contents = ["{}: {} {}".format(top['uid'], top['uname'], top['coin'])
+                        for top in tops]
+            content = '\n'.join(contents)
+            publisher = "排行榜"
+
         danmaku = DanmakuModel(
             publisher=publisher,
             content=content,
@@ -93,7 +148,7 @@ def generate_danmaku(msg):
         )
         return danmaku
     except KeyError:
-        # b站现在新推出了msg类型，防止问题先pass，之后来处理这些新弹幕
+        # pass the unknown danamku.
         return None
 
 
