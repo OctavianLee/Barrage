@@ -67,5 +67,5 @@ def run_recieve(room_id):
     try:
         with generate_socket(room_id) as sock:
             produce_danmaku.switch(sock, danmaku_queue, True)
-    except RuntimeError:
+    except RuntimeError and KeyboardInterrupt:
         pass

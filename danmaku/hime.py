@@ -23,7 +23,7 @@ class DanmakuHime(object):
         option = None
         room_id = None
         while True:
-            option = raw_input("请输入你的选择(Exit 退出):")
+            option = raw_input("请输入你的选择(Exit 退出)：")
             if option in ["1", "2", "Exit"]:
                 break
         if option != "Exit":

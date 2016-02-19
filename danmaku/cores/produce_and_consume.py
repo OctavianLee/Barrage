@@ -61,7 +61,10 @@ def consume_danmaku(sock, danmaku_queue, is_health):
     """
     while True:
         danmaku = get_danmaku(danmaku_queue)
-        print danmaku
+        try:
+            print danmaku
+        except TypeError:
+            pass # 测试过这玩意返回 NoneType 的时候b站直播间也不行
         produce_danmaku.switch(sock, danmaku_queue, is_health)
 
 
