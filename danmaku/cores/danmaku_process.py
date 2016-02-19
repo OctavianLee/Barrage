@@ -117,7 +117,7 @@ def generate_danmaku(msg):
             publisher = msg['info'][2][1].encode('utf-8')
             content = msg['info'][1].encode('utf-8')
             is_vip = msg['info'][2][2] == 1
-            is_admin = int(msg['info'][2][3].encode('utf-8')) == 1
+            is_admin = msg['info'][2][3] == 1
         elif cmd == "SEND_GIFT":
             danmaku_type = SEND_GIFT
             publisher = msg['data']['uname'].encode('utf-8')

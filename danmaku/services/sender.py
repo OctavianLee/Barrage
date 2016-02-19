@@ -9,11 +9,12 @@ import urllib2
 from datetime import datetime
 
 from danmaku.configs.global_settings import (
-    LOGIN_URL, LOGIN_HEADER, LOGIN_DATA, VDCODE_URL,
+    LOGIN_URL, LOGIN_HEADER, LOGIN_DATA,
     SEND_URL
 )
 from danmaku.configs.personal_settings import SEND_FORMAT
 
+requests.packages.urllib3.disable_warnings()
 
 class SenderService(object):
 
@@ -43,12 +44,12 @@ class SenderService(object):
         # 载入登陆设置
         self._pre_login()
         # 获取 登陆必要参数
-        user_id = raw_input('请输入你的用户名：')
-        password = getpass.getpass('请输入你的密码：')
-        self._get_vdcode()
-        vdcode = raw_input('请打开当前路径下名为vdcode.png的图片，输入验证码：')
-        # 进行登录
-        self._login(user_id, password, vdcode)
+        while 1:
+            user_id = raw_input('请输入你的用户名：')
+            password = getpass.getpass('请输入你的密码：')
+            # 进行登录
+            if not self._login(user_id, password):
+                continue
 
     def _pre_login(self):
         """进行登录前信息配置信息。"""
@@ -59,31 +60,23 @@ class SenderService(object):
         for i in self.cookie:
             self.login_header['Cookie'] = i.name + '=' + i.value
 
-    def _get_vdcode(self):
-        """获取验证码。"""
-        req = urllib2.Request(VDCODE_URL)
-        resp = self.opener.open(req)
-        html = resp.read()
-        with open('./vdcode.png', 'w') as f:
-            f.write(html)
-            f.close()
-
-    def _login(self, user_id, password, vdcode):
+    def _login(self, user_id, password):
         """登陆操作。
 
         :params: user_id: 用户账户或邮箱。
         :params: password: 密码。
-        :params: vdcode: 验证码。
         """
         data = LOGIN_DATA
         data['userid'] = user_id
         data['pwd'] = password
-        data['vdcode'] = vdcode
         response = self.session.post(
-            LOGIN_URL,
+            'https://account.bilibili.com/ajax/miniLogin/login',
             data=data,
             headers=self.login_header
         )
+        if not response.json()['status']:
+            print "输入的用户名或密码有误！"
+            return False
         # response.raise_for_status()
         self.cookie = response.cookies
         return True
@@ -96,10 +89,12 @@ class SenderService(object):
         while True:
             try:
                 danmaku = raw_input('输入发送的弹幕(Exit 退出)：')
-                if danmaku == "Exit":
+                if danmaku.lower() == "exit":
                     break
+            except KeyboardInterrupt:
+                break
             except:
-                pass
+                continue
             self.send_a_danmaku(room_id, danmaku)
 
     def send_a_danmaku(self, room_id, danmaku):
