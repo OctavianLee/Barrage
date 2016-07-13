@@ -37,7 +37,10 @@ def process_recieve_data(sock, danmaku_queue, data):
             data = recieve_sock_data(sock, length)
             if not data:
                 return False
-            msg = ujson.loads(data)
+            try:
+                msg = ujson.loads(data)
+            except:
+                print data
             danmaku = generate_danmaku(msg)
             if danmaku:
                 put_danmaku(danmaku_queue, danmaku)
