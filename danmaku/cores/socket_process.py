@@ -2,20 +2,22 @@
 """
     Process the socket when connecting to the server for reciever.
 """
+import random
 import time
-from binascii import unhexlify
+import struct
 from contextlib import contextmanager
 from gevent import socket
 from danmaku.models.danmaku import DanmakuQueue
-from danmaku.configs.global_settings import (
-    RECIEVE_SERVER_ADDRESS, RECIEVE_SERVER_PORT,
-    RECIEVE_INIT_DATA
-)
 from danmaku.configs.personal_settings import MAX_RETRY, TIME_OUT
 from danmaku.cores.produce_and_consume import (
     terminate, produce_danmaku
 )
+from danmaku.helpers import (
+    send_socket_data,
+    get_server
+)
 
+is_first = True
 
 @contextmanager
 def generate_socket(room_id):
@@ -23,22 +25,21 @@ def generate_socket(room_id):
 
     :param room_id: the id of live room.
     """
-    is_first = True
-    print "请求服务器连接"
+    global is_first
     retry_time = 0
     socket.setdefaulttimeout(TIME_OUT)
-    data = RECIEVE_INIT_DATA % room_id
-    send_data = unhexlify(data)
+    userid = int(100000000 * random.random())
+    body = ('{"roomid": ' + str(room_id) + ', "uid": ' + str(userid) +'}')
     while True:
-        sock = socket.socket(socket.AF_INET,
-                             socket.SOCK_STREAM)
         try:
             sock = socket.socket(socket.AF_INET,
-                                 socket.SOCK_STREAM)
+                             socket.SOCK_STREAM)
+            address = get_server(room_id)
             sock.connect(
-                (RECIEVE_SERVER_ADDRESS, RECIEVE_SERVER_PORT))
-            sock.sendall(send_data)
-        except socket.error:
+                (address, 788))
+            send_data = send_socket_data(sock, 16 + len(body), 16,
+                    1, 7, 1, body)
+        except socket.error as exc:
             if retry_time == MAX_RETRY:
                 if not is_first:
                     terminate()
@@ -64,8 +65,10 @@ def run_recieve(room_id):
     :param room_id: the id of live room.
     """
     danmaku_queue = DanmakuQueue(room_id)
-    try:
+    print "请求服务器连接"
+    while True:
         with generate_socket(room_id) as sock:
-            produce_danmaku.switch(sock, danmaku_queue, True)
-    except RuntimeError and KeyboardInterrupt:
-        pass
+            try:
+                produce_danmaku.switch(sock, danmaku_queue, True)
+            except RuntimeError and KeyboardInterrupt:
+                continue

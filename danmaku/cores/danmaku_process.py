@@ -3,48 +3,56 @@
     Process the danmaku data.
 """
 import ujson
+import struct
 from datetime import datetime
 
 from danmaku.models import DANMU_MSG, SEND_GIFT, WELCOME, SEND_TOP
 from danmaku.models.danmaku import DanmakuModel
-from danmaku.helpers import convert_hexascii_to_int
 from danmaku.configs.personal_settings import TIME_FORMAT
-from danmaku.helpers import recieve_sock_data
 
 
-def process_recieve_data(sock, danmaku_queue, data):
+def process_recieve_data(danmaku_queue, data):
     """Process recieving data.
 
     :param sock: the socket object.
     :param danmaku_queue: the queue to recieve danmaku.
     :param data: the recieved data.
     """
-    data_type = convert_hexascii_to_int(data)
-    if data_type == 1:
-        hexascii_data = recieve_sock_data(sock, 4)
-        if not hexascii_data:
-            return False
-        count = convert_hexascii_to_int(hexascii_data)
-        if danmaku_queue.count != count:
-            danmaku_queue.count = count
-            print "当前直播人数为：{}".format(count)
-    elif data_type == 4:
-        hexascii_data = recieve_sock_data(sock, 2)
-        if not hexascii_data:
-            return False
-        length = convert_hexascii_to_int(hexascii_data) - 4
-        if length > 0:
-            data = recieve_sock_data(sock, length)
-            if not data:
-                return False
+    length = len(data)
+    if length < 16:
+        return False
+
+    info = struct.unpack("!ihhii" + str(length - 16) + "s", data)
+    info_length = info[0]
+
+    if info_length < 16:
+        return False
+    elif 16 < info_length < length:
+        first_data = data[0:info_length]
+        process_recieve_data(danmaku_queue, first_data)
+        other_data = data[info_length:length]
+        process_recieve_data(danmaku_queue, other_data)
+        return True
+    elif info_length == length:
+        data_type = info[3] - 1
+        if data_type == 1:
             try:
-                msg = ujson.loads(data)
+                count = struct.unpack('!ihhii', data)[5]
             except:
-                print data
-            danmaku = generate_danmaku(msg)
-            if danmaku:
-                put_danmaku(danmaku_queue, danmaku)
-                return True
+                print "bug", data, info
+            if danmaku_queue.count != count:
+                danmaku_queue.count = count
+                print "当前直播人数为：{}".format(count)
+        elif data_type == 4:
+            try:
+                msg = ujson.loads(info[5])
+                danmaku = generate_danmaku(msg)
+                if danmaku:
+                    put_danmaku(danmaku_queue, danmaku)
+                    return True
+            except Exception as exc:
+                print "bug", info[5]
+    return False
 
 
 def generate_danmaku(msg):

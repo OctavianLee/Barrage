@@ -21,8 +21,8 @@ class DanmakuModel(object):
     """The model of a Danmaku
     """
 
-    VIP = '尊贵的'
-    ADMIN = '管理员'
+    VIP = '老爷'
+    ADMIN = '房管'
     USER = '用户'
 
     def __init__(self, publisher, content, recieved_time, danmaku_type,

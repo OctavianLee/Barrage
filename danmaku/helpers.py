@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
-from gevent import socket
-from binascii import unhexlify, hexlify
+import struct
+import urllib
 
-
-def convert_hexascii_to_int(string):
-    if isinstance(string, str):
-        return int(hexlify(string), 16)
+def get_server(room_id):
+    url = ("http://live.bilibili.com/api/player?id=cid:"+ str(room_id))
+    info = urllib.urlopen(url).read()
+    start = info.find("<server>") + len("<server>")
+    end = info.find("</server>", start)
+    if 0 < start < end:
+        server_url = info[start:end]
+        return server_url
     else:
-        return None
+        return "livecmt-1.bilibili.com"
 
-def recieve_sock_data(sock, length):
+def send_socket_data(sock, total_len, head_len, version, action, param5=1,
+   data=b''):
+    send_data = struct.pack("!ihhii" + str(len(data)) + "s", total_len,
+    head_len, version, action, param5, data)
     try:
-        return sock.recv(length)
+        sock.send(send_data)
+        return True
     except socket.error:
-        return None
+        return False

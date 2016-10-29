@@ -8,18 +8,18 @@
 """
 import time
 import gevent
-from binascii import unhexlify
+import struct
 from gevent import socket
 from greenlet import greenlet
 
 from danmaku.configs.global_settings import (
-    HEARTBEAT_STR,
     HEARTBEAT_KEEP_TIME
 )
 from danmaku.cores.danmaku_process import (
     process_recieve_data,
     get_danmaku
 )
+from danmaku.helpers import send_socket_data
 
 
 @greenlet
@@ -37,7 +37,7 @@ def produce_danmaku(sock, danmaku_queue, is_health=True):
             start = time.time()
             heartbeat.switch(sock, danmaku_queue, is_health)
         try:
-            data = sock.recv(2)
+            data = sock.recv(10240)
             if not data:
                 break
         except socket.timeout:
@@ -46,7 +46,7 @@ def produce_danmaku(sock, danmaku_queue, is_health=True):
                 break
         except socket.error:
             break
-        status = process_recieve_data(sock, danmaku_queue, data)
+        status = process_recieve_data(danmaku_queue, data)
         if status:
             consume_danmaku.switch(sock, danmaku_queue, is_health)
 
@@ -76,10 +76,10 @@ def heartbeat(sock, danmaku_queue, is_health):
     :param danmaku_queue: the queue to recieve danmaku.
     :param is_health: the status of connection
     """
-    send_data = unhexlify(HEARTBEAT_STR)
+    
     while True:
         try:
-            sock.sendall(send_data)
+            send_data = send_socket_data(sock, 16, 16, 1, 2)
         except socket.timeout:
             is_health = False
         produce_danmaku.switch(sock, danmaku_queue, is_health)
