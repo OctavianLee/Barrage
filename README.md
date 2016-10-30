@@ -49,6 +49,7 @@ python main.py
 
 Version Changes:
 
++ 2016-10-30 14H  重构弹幕姬功能。 By Octavian
 + 2016-10-30 00H  重新更新弹幕姬接受弹幕功能，成功恢复功能，仍然有bug。 By Octavian
 + 2016-02-19 13H  使用 minilogin 接口，不需要验证码。修复一些用户体验 Bug。 By SuperFashi
 + 2015-07-12 05H  完成接收弹幕的功能，能实时捕获弹幕信息。 By Octavian
